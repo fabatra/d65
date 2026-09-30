@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Interativo - Descritor 65: Probabilidade</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #2d3748; line-height: 1.6; margin: 0; padding: 20px; }
+    .container { max-width: 750px; margin: 20px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
+    h1 { font-size: 24px; color: #1a365d; margin: 0 0 5px 0; }
+    .subtitle { color: #718096; font-size: 14px; margin: 0; }
+    .progress-bar-container { width: 100%; background-color: #e2e8f0; height: 10px; border-radius: 5px; margin: 20px 0; overflow: hidden; }
+    .progress-bar { height: 100%; width: 9%; background-color: #3182ce; transition: width 0.3s ease; }
+    .status-text { font-size: 14px; font-weight: bold; color: #4a5568; display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .question-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .question-code { display: inline-block; background-color: #ebf8ff; color: #2b6cb0; font-size: 13px; font-weight: bold; padding: 3px 8px; border-radius: 4px; margin-bottom: 10px; }
+    .question-text { font-size: 16px; color: #2d3748; margin-bottom: 15px; font-weight: 500; }
+    .options { list-style: none; padding: 0; margin: 0; }
+    .options li { margin-bottom: 10px; }
+    .options label { display: flex; align-items: center; background-color: #ffffff; border: 2px solid #cbd5e0; padding: 12px 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-size: 15px; }
+    .options label:hover { background-color: #edf2f7; border-color: #a0aec0; }
+    .options input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
+    .options label.selected { border-color: #3182ce; background-color: #ebf8ff; }
+    .options label.correct { border-color: #38a169; background-color: #f0fff4; color: #22543d; font-weight: bold; }
+    .options label.incorrect { border-color: #e53e3e; background-color: #fff5f5; color: #742a2a; }
+    .resolution-box { display: none; margin-top: 20px; padding: 15px 20px; border-radius: 8px; font-size: 15px; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .resolution-box.correct-bg { background-color: #f0fff4; border: 1px solid #9ae6b4; color: #22543d; }
+    .resolution-box.incorrect-bg { background-color: #fff5f5; border: 1px solid #feb2b2; color: #742a2a; }
+    .resolution-title { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
+    .actions { display: flex; justify-content: space-between; margin-top: 20px; }
+    .btn { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .btn-submit { background-color: #3182ce; color: white; width: 100%; }
+    .btn-submit:hover { background-color: #2b6cb0; }
+    .btn-submit:disabled { background-color: #cbd5e0; cursor: not-allowed; }
+    .btn-next { background-color: #38a169; color: white; display: none; width: 100%; }
+    .btn-next:hover { background-color: #2f855a; }
+    #result-screen { display: none; text-align: center; padding: 20px 0; }
+    .score-badge { font-size: 42px; font-weight: bold; color: #2b6cb0; margin: 15px 0; }
+    .btn-restart { background-color: #3182ce; color: white; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Quiz de Probabilidade</h1>
+    <p class="subtitle">Descritor 65 - Resolução de Problemas de Probabilidade</p>
+  </div>
+
+  <div id="quiz-screen">
+    <div class="status-text">
+      <span id="question-count">Questão 1 de 11</span>
+      <span id="score-count">Pontuação: 0</span>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="question-card">
+      <span class="question-code" id="q-code">M019765</span>
+      <div class="question-text" id="q-text"></div>
+
+      <ul class="options" id="options-list"></ul>
+
+      <div class="resolution-box" id="resolution-box">
+        <div class="resolution-title" id="feedback-title"></div>
+        <div id="resolution-text"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-submit" id="btn-submit" onclick="checkAnswer()">Responder</button>
+      <button class="btn btn-next" id="btn-next" onclick="nextQuestion()">Próxima Questão →</button>
+    </div>
+  </div>
+
+  <div id="result-screen">
+    <h2>Parabéns! Você concluiu o Quiz.</h2>
+    <p>Confira o seu desempenho nas 11 questões do Descritor 65:</p>
+    <div class="score-badge" id="final-score">0 / 11</div>
+    <p id="final-percentage" style="font-size: 18px; color: #4a5568;"></p>
+    <button class="btn btn-restart" onclick="restartQuiz()">Refazer Quiz</button>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    {
+      id: 1,
+      code: "M019765",
+      question: "O dono de uma loja utilizou uma urna com bolas que se diferem apenas pela cor para realizar uma promoção. Dentre essas bolas, 27 são da cor verde, 33 são da cor azul, 30 são da cor laranja e 12 bolas são da cor dourada. O cliente que participa dessa promoção deve retirar, aleatoriamente, uma bola da urna. Caso a bola retirada seja da cor dourada, ele ganha um prêmio. Marcela será a primeira cliente a retirar uma bola dessa urna. Qual é a probabilidade de Marcela retirar uma bola dourada e ganhar o prêmio?",
+      options: [
+        { letter: "A", text: "12 / 102" },
+        { letter: "B", text: "1 / 12" },
+        { letter: "C", text: "12 / 90" },
+        { letter: "D", text: "90 / 102" },
+        { letter: "E", text: "102 / 90" }
+      ],
+      correct: "A",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de bolas (Espaço Amostral): 27 + 33 + 30 + 12 = <b>102 bolas</b>.<br>2. Casos favoráveis (Douradas): <b>12 bolas</b>.<br>3. Probabilidade = <b>12 / 102</b>.<br><b>Gabarito: Alternativa A.</b>"
+    },
+    {
+      id: 2,
+      code: "M019734",
+      question: "Beatriz possui uma caixa com grampos de cabelo que se diferenciam apenas pela cor. Entre os grampos dessa caixa, 34 são vermelhos, 19 são azuis, 28 são verdes e 20 são da cor rosa. Beatriz irá retirar um grampo dessa caixa sem olhar a cor. Qual é a probabilidade de Beatriz retirar um grampo da cor azul?",
+      options: [
+        { letter: "A", text: "1 / 19" },
+        { letter: "B", text: "19 / 101" },
+        { letter: "C", text: "19 / 82" },
+        { letter: "D", text: "82 / 101" },
+        { letter: "E", text: "101 / 19" }
+      ],
+      correct: "B",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de grampos: 34 + 19 + 28 + 20 = <b>101 grampos</b>.<br>2. Casos favoráveis (Azuis): <b>19 grampos</b>.<br>3. Probabilidade = <b>19 / 101</b>.<br><b>Gabarito: Alternativa B.</b>"
+    },
+    {
+      id: 3,
+      code: "M00086191",
+      question: "Uma perfumaria oferece brindes para seus clientes por meio de um sorteio. Para realizar esse sorteio, cartões idênticos foram colocados em uma caixa. Cada cartão contém o nome de um brinde. Bernardo retirou um cartão dessa caixa, que continha 4 cartões de perfume, 6 de creme, 7 de batom e 3 de sabonete. Qual é a probabilidade de Bernardo ter retirado um cartão do brinde sabonete?",
+      options: [
+        { letter: "A", text: "17 / 3" },
+        { letter: "B", text: "17 / 20" },
+        { letter: "C", text: "3 / 17" },
+        { letter: "D", text: "3 / 20" },
+        { letter: "E", text: "1 / 20" }
+      ],
+      correct: "D",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de cartões: 4 + 6 + 7 + 3 = <b>20 cartões</b>.<br>2. Casos favoráveis (Sabonete): <b>3 cartões</b>.<br>3. Probabilidade = <b>3 / 20</b>.<br><b>Gabarito: Alternativa D.</b>"
+    },
+    {
+      id: 4,
+      code: "M00172128",
+      question: "Em uma loja, estão sendo vendidas 9 calças jeans de um mesmo modelo. Dessas calças, 6 são de cor azul, e as outras 3 calças restantes são de cor preta. Dentre as calças de cor azul, 2 são de tamanho M e, dentre as de cor preta, 1 é de tamanho M. Uma vendedora pegou, aleatoriamente, uma dessas calças de tamanho M para expor na vitrine da loja. Qual é a probabilidade dessa calça de tamanho M que será exposta na vitrine ser uma calça jeans de cor azul?",
+      options: [
+        { letter: "A", text: "2 / 9" },
+        { letter: "B", text: "2 / 7" },
+        { letter: "C", text: "2 / 6" },
+        { letter: "D", text: "1 / 2" },
+        { letter: "E", text: "2 / 3" }
+      ],
+      correct: "E",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Universo restrito ao tamanho M: 2 (azuis M) + 1 (preta M) = <b>3 calças M</b>.<br>2. Casos favoráveis (Azul M): <b>2 calças</b>.<br>3. Probabilidade = <b>2 / 3</b>.<br><b>Gabarito: Alternativa E.</b>"
+    },
+    {
+      id: 5,
+      code: "M00102519",
+      question: "Um torneio esportivo terá a participação de 26 equipes, que estão nomeadas com as letras do alfabeto. A fim de ordenar as equipes para as apresentações, será realizado um sorteio, em que a primeira equipe sorteada será a primeira a se apresentar e assim por diante. Para realizar esse sorteio, as 26 letras do alfabeto serão colocadas em uma urna e retiradas uma de cada vez aleatoriamente. Qual é a probabilidade da primeira equipe a se apresentar ser uma equipe nomeada por uma vogal?",
+      options: [
+        { letter: "A", text: "1 / 26" },
+        { letter: "B", text: "5 / 26" },
+        { letter: "C", text: "1 / 5" },
+        { letter: "D", text: "5 / 21" },
+        { letter: "E", text: "1 / 2" }
+      ],
+      correct: "B",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de letras no alfabeto: <b>26 letras</b>.<br>2. Vogais (A, E, I, O, U): <b>5 letras</b>.<br>3. Probabilidade = <b>5 / 26</b>.<br><b>Gabarito: Alternativa B.</b>"
+    },
+    {
+      id: 6,
+      code: "M00197676",
+      question: "Uma empresa está instalada em um edifício de 6 andares. Nos 5 primeiros andares, trabalha um total de 100 funcionários efetivos. Já no sexto andar, trabalham 30 funcionários, todos em período de experiência. Para um evento de final de ano, será utilizado um aplicativo para sortear um dos funcionários dessa empresa para ganhar uma viagem. Todos os funcionários dessa empresa possuem a mesma probabilidade de serem sorteados. Qual é a probabilidade de o funcionário em período de experiência ser o ganhador desse sorteio?",
+      options: [
+        { letter: "A", text: "1 / 130" },
+        { letter: "B", text: "1 / 30" },
+        { letter: "C", text: "1 / 6" },
+        { letter: "D", text: "30 / 130" },
+        { letter: "E", text: "30 / 100" }
+      ],
+      correct: "D",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de funcionários: 100 + 30 = <b>130 funcionários</b>.<br>2. Casos favoráveis (Em experiência): <b>30 funcionários</b>.<br>3. Probabilidade = <b>30 / 130</b>.<br><b>Gabarito: Alternativa D.</b>"
+    },
+    {
+      id: 7,
+      code: "M00131334",
+      question: "Os clientes de uma livraria que realizaram compras acima de determinado valor na sexta-feira, no sábado ou no domingo de determinada semana receberam um bilhete numerado para participar do sorteio de um vale-compras. O número do bilhete identifica cada um dos participantes. Foram entregues 32 bilhetes na sexta-feira, 73 no sábado, e 48 no domingo. Todos esses bilhetes foram colocados em uma urna, e cada um deles tem a mesma probabilidade de ser sorteado. Qual é a probabilidade de um bilhete entregue na sexta-feira ser sorteado?",
+      options: [
+        { letter: "A", text: "1 / 3" },
+        { letter: "B", text: "1 / 32" },
+        { letter: "C", text: "1 / 153" },
+        { letter: "D", text: "32 / 153" },
+        { letter: "E", text: "121 / 153" }
+      ],
+      correct: "D",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de bilhetes: 32 + 73 + 48 = <b>153 bilhetes</b>.<br>2. Casos favoráveis (Sexta-feira): <b>32 bilhetes</b>.<br>3. Probabilidade = <b>32 / 153</b>.<br><b>Gabarito: Alternativa D.</b>"
+    },
+    {
+      id: 8,
+      code: "M110884H6",
+      question: "Um jogo da memória é composto por um baralho com 24 cartas, todas com uma das faces idênticas e a outra face contendo um desenho. Cada uma das cartas desse baralho possui um único par com desenho idêntico. No início do jogo, todas as cartas são dispostas com as faces voltadas para baixo e, na primeira jogada, uma dessas cartas é escolhida ao acaso e tem seu desenho revelado. Em seguida, o mesmo jogador escolhe, ao acaso, uma outra carta e revela seu desenho, com o objetivo de verificar se as duas formam um par de desenhos iguais. Nessas condições, a probabilidade de se formar um par na primeira jogada é",
+      options: [
+        { letter: "A", text: "1 / 24" },
+        { letter: "B", text: "1 / 23" },
+        { letter: "C", text: "1 / 12" },
+        { letter: "D", text: "2 / 22" },
+        { letter: "E", text: "12 / 24" }
+      ],
+      correct: "B",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Após virar a 1ª carta, restam <b>23 cartas</b> na mesa.<br>2. Apenas <b>1 carta</b> é idêntica à primeira.<br>3. Probabilidade = <b>1 / 23</b>.<br><b>Gabarito: Alternativa B.</b>"
+    },
+    {
+      id: 9,
+      code: "M120447A8",
+      question: "Dentro de uma sacola existem cinco bolas numeradas com 1, 2, 3, 4 e 5, cada bola com um número. Letícia retira uma bola da sacola, lê o número escrito nela e devolve a bola para a sacola. Em seguida, ela retira novamente uma bola da sacola, e lê o número escrito nela. Qual é a probabilidade de os dois números lidos por Letícia serem iguais?",
+      options: [
+        { letter: "A", text: "1 / 25" },
+        { letter: "B", text: "2 / 25" },
+        { letter: "C", text: "1 / 10" },
+        { letter: "D", text: "1 / 2" },
+        { letter: "E", text: "1 / 5" }
+      ],
+      correct: "E",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de pares possíveis: 5 × 5 = <b>25 resultados</b>.<br>2. Pares iguais: (1,1), (2,2), (3,3), (4,4), (5,5) = <b>5 pares</b>.<br>3. Probabilidade = 5 / 25 = <b>1 / 5</b>.<br><b>Gabarito: Alternativa E.</b>"
+    },
+    {
+      id: 10,
+      code: "M111044H6",
+      question: "Carolina tem um estojo com algumas canetas coloridas que possuem o mesmo formato e tamanho. Ela tem 5 canetas na cor rosa, 4 canetas na cor azul, 2 canetas na cor verde e 1 caneta na cor preta. Ao chegar na escola, Carolina retirou, aleatoriamente, uma caneta desse estojo. Qual é a probabilidade dessa primeira caneta retirada ser da cor rosa?",
+      options: [
+        { letter: "A", text: "1 / 12" },
+        { letter: "B", text: "5 / 12" },
+        { letter: "C", text: "7 / 12" },
+        { letter: "D", text: "5 / 7" },
+        { letter: "E", text: "12 / 5" }
+      ],
+      correct: "B",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de canetas: 5 + 4 + 2 + 1 = <b>12 canetas</b>.<br>2. Casos favoráveis (Rosa): <b>5 canetas</b>.<br>3. Probabilidade = <b>5 / 12</b>.<br><b>Gabarito: Alternativa B.</b>"
+    },
+    {
+      id: 11,
+      code: "Q11",
+      question: "Priscila trabalha em uma loja de manutenção de celulares. Certo dia, chegou nessa loja uma caixa de 50 celulares de um mesmo modelo para manutenção. Ela foi informada de que 21 celulares estão com defeito na tela e 18 com defeito na bateria. Desses celulares que estão com defeito na tela ou na bateria, 7 apresentam ambos os defeitos. Priscila escolheu aleatoriamente um celular dessa caixa para realizar a manutenção. Qual é a probabilidade de Priscila ter escolhido um celular com pelo menos um desses defeitos?",
+      options: [
+        { letter: "A", text: "21 / 50" },
+        { letter: "B", text: "25 / 50" },
+        { letter: "C", text: "32 / 50" },
+        { letter: "D", text: "39 / 50" },
+        { letter: "E", text: "46 / 50" }
+      ],
+      correct: "C",
+      explanation: "<b>Resolução Passo a Passo:</b><br>1. Total de celulares: <b>50</b>.<br>2. Celulares com pelo menos um defeito: Tela (21) + Bateria (18) - Ambos (7) = <b>32 celulares</b>.<br>3. Probabilidade = <b>32 / 50</b>.<br><b>Gabarito: Alternativa C.</b>"
+    }
+  ];
+
+  let currentQuestion = 0;
+  let score = 0;
+  let selectedOption = null;
+
+  function loadQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById("q-code").innerText = q.code;
+    document.getElementById("q-text").innerText = q.question;
+    document.getElementById("question-count").innerText = `Questão ${currentQuestion + 1} de ${questions.length}`;
+    document.getElementById("score-count").innerText = `Pontuação: ${score}`;
+    
+    const progressPercent = ((currentQuestion + 1) / questions.length) * 100;
+    document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+
+    const optionsList = document.getElementById("options-list");
+    optionsList.innerHTML = "";
+
+    q.options.forEach(opt => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <label id="label-${opt.letter}">
+          <input type="radio" name="option" value="${opt.letter}" onclick="selectOption('${opt.letter}')">
+          ${opt.letter}) ${opt.text}
+        </label>
+      `;
+      optionsList.appendChild(li);
+    });
+
+    document.getElementById("resolution-box").style.display = "none";
+    document.getElementById("btn-submit").style.display = "block";
+    document.getElementById("btn-submit").disabled = true;
+    document.getElementById("btn-next").style.display = "none";
+    selectedOption = null;
+  }
+
+  function selectOption(letter) {
+    selectedOption = letter;
+    document.querySelectorAll(".options label").forEach(lbl => lbl.classList.remove("selected"));
+    document.getElementById(`label-${letter}`).classList.add("selected");
+    document.getElementById("btn-submit").disabled = false;
+  }
+
+  function checkAnswer() {
+    if (!selectedOption) return;
+
+    const q = questions[currentQuestion];
+    const isCorrect = (selectedOption === q.correct);
+
+    document.querySelectorAll(".options input").forEach(input => input.disabled = true);
+    
+    if (isCorrect) {
+      score++;
+      document.getElementById(`label-${selectedOption}`).classList.add("correct");
+      document.getElementById("feedback-title").innerText = "Resposta Correta! 🎉";
+      document.getElementById("resolution-box").className = "resolution-box correct-bg";
+    } else {
+      document.getElementById(`label-${selectedOption}`).classList.add("incorrect");
+      document.getElementById(`label-${q.correct}`).classList.add("correct");
+      document.getElementById("feedback-title").innerText = "Resposta Incorreta ❌";
+      document.getElementById("resolution-box").className = "resolution-box incorrect-bg";
+    }
+
+    document.getElementById("resolution-text").innerHTML = q.explanation;
+    document.getElementById("resolution-box").style.display = "block";
+
+    document.getElementById("btn-submit").style.display = "none";
+    document.getElementById("btn-next").style.display = "block";
+    
+    if (currentQuestion === questions.length - 1) {
+      document.getElementById("btn-next").innerText = "Ver Resultado Final 🏆";
+    } else {
+      document.getElementById("btn-next").innerText = "Próxima Questão →";
+    }
+  }
+
+  function nextQuestion() {
+    currentQuestion++;
+    if (currentQuestion < questions.length) {
+      loadQuestion();
+    } else {
+      showResults();
+    }
+  }
+
+  function showResults() {
+    document.getElementById("quiz-screen").style.display = "none";
+    document.getElementById("result-screen").style.display = "block";
+    document.getElementById("final-score").innerText = `${score} / ${questions.length}`;
+    const pct = Math.round((score / questions.length) * 100);
+    document.getElementById("final-percentage").innerText = `Aproveitamento: ${pct}%`;
+  }
+
+  function restartQuiz() {
+    currentQuestion = 0;
+    score = 0;
+    document.getElementById("quiz-screen").style.display = "block";
+    document.getElementById("result-screen").style.display = "none";
+    loadQuestion();
+  }
+
+  window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
